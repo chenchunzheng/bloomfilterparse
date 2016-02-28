@@ -55,7 +55,7 @@ public class Main {
             redisService.delete(bloomName);
             jsonObject.addProperty("isRemove", "success");
         }else {
-            jsonObject =  initdata(file, redisService, bloomFilter, bloomName);
+            initdata(file, redisService, bloomFilter, bloomName);
             jsonObject.addProperty("falsePositiveProbability", FALSE_POSITIVE_PROBABILITY);
             jsonObject.addProperty("expectedElements", EXPECTED_ELEMENTS);
             jsonObject.addProperty("bloomName", bloomName);
@@ -63,7 +63,7 @@ public class Main {
         System.out.print(jsonObject);
     }
 
-    private static JsonObject initdata(File file, RedisService redisService, BloomFilter bloomFilter, String bloomName) throws IOException {
+    private static String initdata(File file, RedisService redisService, BloomFilter bloomFilter, String bloomName) throws IOException {
 
         BufferedReader reader = null;
         try {
@@ -88,8 +88,10 @@ public class Main {
             //file.delete();
             IOUtils.closeQuietly(reader);
         }
-        JsonObject bloomValue = redisService.get(bloomName,JsonObject.class);
-        return bloomValue;
+//        Object redisServiceValue = redisService.get(bloomName,Object.class);
+//        System.out.print(redisServiceValue);
+//        JsonObject bloomValue = redisService.get(bloomName,JsonObject.class);
+        return bloomName;
     }
 
     public static void showUsage(String message) {
