@@ -1,21 +1,14 @@
 package com.baidu.sjws;
 
 import com.dianxinos.jedis.wrapper.RedisService;
-import com.dianxinos.jedis.wrapper.ShardedRedisServiceImpl;
-import com.dianxinos.jedis.wrapper.serializer.JacksonJsonRedisSerializer;
-import com.dianxinos.jedis.wrapper.serializer.RedisSerializer;
 import com.google.gson.JsonObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import redis.clients.jedis.ShardedJedisPool;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by baidu on 16/2/26.
@@ -26,21 +19,21 @@ public class Main {
     private static String SEPARATOR = ",";
     public static void main(String args[]) throws IOException {
 
-//        if(args.length < 4) {
-//            showUsage("usage: bloomfilterparse.jar [srcFile] [bloomName] [redishost] [redisPassword] [isRemove]");
-//            return;
-//        }
-//        String srcFile = args[0];
-//        String bloomName = args[1];
-//        String redishost = args[2];
-//        String redisPassword = args[3];
-//        String isRemove = args[4];
+        if(args.length < 4) {
+            showUsage("usage: bloomfilterparse.jar [srcFile] [bloomName] [redishost] [redisPassword] [isRemove]");
+            return;
+        }
+        String srcFile = args[0];
+        String bloomName = args[1];
+        String redishost = args[2];
+        String redisPassword = args[3];
+        String isRemove = args[4];
 
-        String srcFile = "/Users/baidu/Downloads/token.txt";
-        String bloomName = "bloom";
-        String redishost = "cp01-sjws-offline012.cp01:8769,cp01-sjws-offline012.cp01:8770";
-        String redisPassword = "my_redis";
-        String isRemove = "true";
+//        String srcFile = "/Users/baidu/Downloads/token.txt";
+//        String bloomName = "bloom";
+//        String redishost = "cp01-sjws-offline012.cp01:8769,cp01-sjws-offline012.cp01:8770";
+//        String redisPassword = "my_redis";
+//        String isRemove = "true";
 
         File file = new File(srcFile);
         if(!file.exists()){
@@ -55,10 +48,11 @@ public class Main {
             redisService.delete(bloomName);
             jsonObject.addProperty("isRemove", "success");
         }else {
-            initdata(file, redisService, bloomFilter, bloomName);
+            String bitStr = initdata(file, redisService, bloomFilter, bloomName);
             jsonObject.addProperty("falsePositiveProbability", FALSE_POSITIVE_PROBABILITY);
             jsonObject.addProperty("expectedElements", EXPECTED_ELEMENTS);
             jsonObject.addProperty("bloomName", bloomName);
+            jsonObject.addProperty("bits", bitStr);
         }
         System.out.print(jsonObject);
     }
@@ -88,10 +82,8 @@ public class Main {
             //file.delete();
             IOUtils.closeQuietly(reader);
         }
-//        Object redisServiceValue = redisService.get(bloomName,Object.class);
-//        System.out.print(redisServiceValue);
-//        JsonObject bloomValue = redisService.get(bloomName,JsonObject.class);
-        return bloomName;
+        byte[] redisServiceValue = redisService.get(bloomName.getBytes());
+        return new String(redisServiceValue);
     }
 
     public static void showUsage(String message) {
