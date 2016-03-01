@@ -19,40 +19,45 @@ public class Main {
     private static String SEPARATOR = ",";
     public static void main(String args[]) throws IOException {
 
-        if(args.length < 4) {
-            showUsage("usage: bloomfilterparse.jar [srcFile] [bloomName] [redishost] [redisPassword] [isRemove]");
+        if(args.length < 5) {
+            showUsage("usage: bloomfilterparse.jar [srcFile] [bloomName] [redishost] [redisPassword] [cachePrefix] [isRemove]");
             return;
         }
         String srcFile = args[0];
         String bloomName = args[1];
         String redishost = args[2];
         String redisPassword = args[3];
-        String isRemove = args[4];
+        String cachePrefix = args[4];
+        String isRemove = args[5];
 
 //        String srcFile = "/Users/baidu/Downloads/token.txt";
 //        String bloomName = "bloom";
 //        String redishost = "cp01-sjws-offline012.cp01:8769,cp01-sjws-offline012.cp01:8770";
 //        String redisPassword = "my_redis";
-//        String isRemove = "true";
-
-        File file = new File(srcFile);
-        if(!file.exists()){
-            showUsage("usage: file does not exist");
-            return;
-        }
+//        String isRemove = "false";
 
         JsonObject jsonObject = new JsonObject();
-        RedisService redisService = RedisUtils.getRedisService(redishost, redisPassword);
-        BloomFilter bloomFilter = new BloomFilter(EXPECTED_ELEMENTS, FALSE_POSITIVE_PROBABILITY);
+        RedisService redisService = RedisUtils.getRedisService(redishost, redisPassword, cachePrefix);
+        BloomFilter bloomFilter = new BloomFilter(EXPECTED_ELEMENTS, FALSE_POSITIVE_PROBABILITY, bloomName);
         if(Boolean.valueOf(isRemove)) {
             redisService.delete(bloomName);
             jsonObject.addProperty("isRemove", "success");
         }else {
+
+            File file = new File(srcFile);
+            if(!file.exists()){
+                showUsage("usage: file does not exist");
+                return;
+            }
+
             String bitStr = initdata(file, redisService, bloomFilter, bloomName);
-            jsonObject.addProperty("falsePositiveProbability", FALSE_POSITIVE_PROBABILITY);
-            jsonObject.addProperty("expectedElements", EXPECTED_ELEMENTS);
+            jsonObject.addProperty("fpp", FALSE_POSITIVE_PROBABILITY);
+            jsonObject.addProperty("n", EXPECTED_ELEMENTS);
             jsonObject.addProperty("bloomName", bloomName);
             jsonObject.addProperty("bits", bitStr);
+            jsonObject.addProperty("hCount", bloomFilter.gethCount());
+            jsonObject.addProperty("bitSize", bloomFilter.getBitSize());
+
         }
         System.out.print(jsonObject);
     }
@@ -70,7 +75,7 @@ public class Main {
                 }
                 String[] token_imeis = line.split(SEPARATOR);
                 for(String token_imei:token_imeis) {
-                   long[] offset = bloomFilter.murmurHashOffset(token_imei);
+                   long[] offset = BloomUtils.murmurHashOffset(token_imei, bloomFilter.gethCount(), bloomFilter.getBitSize());
                    redisService.setMultiBit(bloomName, offset, null);
                    //List<Object> valueExits = redisService.getMultiBit(bloomName, offset);
                 }
@@ -82,8 +87,11 @@ public class Main {
             //file.delete();
             IOUtils.closeQuietly(reader);
         }
-        byte[] redisServiceValue = redisService.get(bloomName.getBytes());
-        return new String(redisServiceValue);
+
+        String format = "ISO-8859-1";
+
+        byte[] redisServiceValue = redisService.get(bloomName.getBytes(format));
+        return new String(redisServiceValue, format);
     }
 
     public static void showUsage(String message) {

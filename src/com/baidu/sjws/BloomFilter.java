@@ -12,103 +12,71 @@ import redis.clients.util.MurmurHash;
  */
 public class BloomFilter {
 
-
-
-    private int maxKey;
-    private float errorRate;
-    private int hashFunctionCount;
+    /**
+     * expectedElements
+     */
+    private int n;
+    /**
+     * falsePositiveProbability
+     */
+    private float fpp;
+    /**
+     * hashFunctionCount
+     */
+    private int hCount;
+    /**
+     * bit size
+     */
     private int bitSize;
 
-    public BloomFilter(int maxKey, float errorRate) {
-        this.maxKey = maxKey;
-        this.errorRate = errorRate;
-        this.bitSize = calcOptimalM(maxKey, errorRate);
-        this.hashFunctionCount = calcOptimalK(bitSize, maxKey);
-    }
+    /**
+     * bloom name
+     */
+    private String bloomName;
 
     /**
-     * Calculate M and K
-     * See http://en.wikipedia.org/wiki/Bloom_filter#Probability_of_false_positives for more details
-     * @param maxKey
-     * @param errorRate
-     * @return
+     * bit data
      */
-    public int calcOptimalM(int maxKey, float errorRate){
-        return (int) Math.ceil(maxKey
-                * (Math.log(errorRate) / Math.log(0.6185)));
+    private String bits;
+
+    public BloomFilter(int n, float p, String s) {
+        this.n = n;
+        fpp = p;
+        bloomName = s;
+        bitSize = BloomUtils.calcOptimalM(n, p);
+        hCount = BloomUtils.calcOptimalK(bitSize, n);
     }
 
-    /**
-     * Calculate M and K
-     * See http://en.wikipedia.org/wiki/Bloom_filter#Probability_of_false_positives for more details
-     * @param bitSize
-     * @param maxKey
-     * @return
-     */
-    public int calcOptimalK(int bitSize, int maxKey){
-        return (int) Math.ceil(Math.log(2) * (bitSize / maxKey));
+    public BloomFilter(int n, float p) {
+        this(n, p, "");
     }
 
-    /**
-     * get the setbit offset by MurmurHash
-     * @param value
-     * @return
-     */
-    public static int[] murmurHashOffset(String value, int hashFunctionCount, int maxBitCount) {
-        int[] offsets = new int[hashFunctionCount];
-        if (StringUtils.isBlank(value)) {
-            return offsets;
-        }
-        byte[] b = value.getBytes();
-        int hash1 = MurmurHash.hash(b, 0);
-        int hash2 = MurmurHash.hash(b, hash1);
-        for (int i = 0; i < hashFunctionCount; ++i){
-            offsets[i] = (int) (Math.abs((hash1 + i * hash2) % maxBitCount) );
-        }
-        return offsets;
+    public BloomFilter() {
+
     }
 
-    /**
-     * get the setbit offset by MurmurHash
-     * @param value
-     * @return
-     */
-    public long[] murmurHashOffset(String value) {
-        long[] offsets = new long[this.hashFunctionCount];
-        if (StringUtils.isBlank(value)) {
-            return offsets;
-        }
-        byte[] b = value.getBytes();
-        int hash1 = MurmurHash.hash(b, 0);
-        int hash2 = MurmurHash.hash(b, hash1);
-        for (int i = 0; i < hashFunctionCount; ++i){
-            offsets[i] = (int) (Math.abs((hash1 + i * hash2) % this.maxKey) );
-        }
-        return offsets;
+    public int getN() {
+        return n;
     }
 
-    public int getMaxKey() {
-        return maxKey;
+    public void setN(int n) {
+        this.n = n;
     }
 
-    public void setMaxKey(int maxKey) {
-        this.maxKey = maxKey;
+    public float getFpp() {
+        return fpp;
     }
 
-    public float getErrorRate() {
-        return errorRate;
+    public void setFpp(float fpp) {
+        this.fpp = fpp;
     }
 
-    public void setErrorRate(float errorRate) {
-        this.errorRate = errorRate;
+    public int gethCount() {
+        return hCount;
     }
 
-    public int getHashFunctionCount() {
-        return hashFunctionCount;
-    }
-
-    public void setHashFunctionCount(int hashFunctionCount) {
-        this.hashFunctionCount = hashFunctionCount;
+    public void sethCount(int hCount) {
+        this.hCount = hCount;
     }
 
     public int getBitSize() {
@@ -117,5 +85,21 @@ public class BloomFilter {
 
     public void setBitSize(int bitSize) {
         this.bitSize = bitSize;
+    }
+
+    public String getBloomName() {
+        return bloomName;
+    }
+
+    public void setBloomName(String bloomName) {
+        this.bloomName = bloomName;
+    }
+
+    public String getBits() {
+        return bits;
+    }
+
+    public void setBits(String bits) {
+        this.bits = bits;
     }
 }

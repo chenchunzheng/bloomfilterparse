@@ -19,9 +19,7 @@ import java.util.List;
  */
 public class RedisUtils {
 
-    private static String CACHE_PREFIX = "_omp_bloom_";
-
-    public static RedisService getRedisService (String redishost, String redisPassword) {
+    public static RedisService getRedisService (String redishost, String redisPassword, String cachePrefix) {
         JedisPoolConfig poolConfig = new JedisPoolConfig();
         poolConfig.setMaxTotal(500);
         poolConfig.setMaxIdle(50);
@@ -38,7 +36,7 @@ public class RedisUtils {
 
         ShardedJedisPool pool = new ShardedJedisPool(poolConfig, shards);
         RedisSerializer redisSerializer = new JacksonJsonRedisSerializer(new ObjectMapper());
-        RedisService redisService = new ShardedRedisServiceImpl(pool, redisSerializer, CACHE_PREFIX);
+        RedisService redisService = new ShardedRedisServiceImpl(pool, redisSerializer, cachePrefix);
 
         return redisService;
     }
