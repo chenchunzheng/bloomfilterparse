@@ -15,8 +15,9 @@ import java.io.IOException;
  */
 public class Main {
     private static float FALSE_POSITIVE_PROBABILITY = 0.01f;
-    private static int  EXPECTED_ELEMENTS = 1000000;
+    private static int EXPECTED_ELEMENTS = 1000000;
     private static String SEPARATOR = ",";
+    private static String ENCODING = "ISO-8859-1";
     public static void main(String args[]) throws IOException {
 
         if(args.length < 5) {
@@ -50,7 +51,7 @@ public class Main {
                 return;
             }
 
-            String bitStr = initdata(file, redisService, bloomFilter, bloomName);
+            String bitStr = initdata(file, redisService, bloomFilter);
             jsonObject.addProperty("fpp", FALSE_POSITIVE_PROBABILITY);
             jsonObject.addProperty("n", EXPECTED_ELEMENTS);
             jsonObject.addProperty("bloomName", bloomName);
@@ -62,9 +63,10 @@ public class Main {
         System.out.print(jsonObject);
     }
 
-    private static String initdata(File file, RedisService redisService, BloomFilter bloomFilter, String bloomName) throws IOException {
+    private static String initdata(File file, RedisService redisService, BloomFilter bloomFilter) throws IOException {
 
         BufferedReader reader = null;
+        String bloomName = bloomFilter.getBloomName();
         try {
             reader = new BufferedReader(new FileReader(file));
             String line;
@@ -88,10 +90,8 @@ public class Main {
             IOUtils.closeQuietly(reader);
         }
 
-        String format = "ISO-8859-1";
-
-        byte[] redisServiceValue = redisService.get(bloomName.getBytes(format));
-        return new String(redisServiceValue, format);
+        byte[] redisServiceValue = redisService.get(bloomName.getBytes(ENCODING));
+        return new String(redisServiceValue, ENCODING);
     }
 
     public static void showUsage(String message) {

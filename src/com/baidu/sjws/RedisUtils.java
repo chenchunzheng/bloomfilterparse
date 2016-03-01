@@ -19,15 +19,19 @@ import java.util.List;
  */
 public class RedisUtils {
 
+    private static int MAX_TOTAL = 100;
+    private static int MAX_IDEL = 10;
+    private static int TIME_OUT = 5000;
+
     public static RedisService getRedisService (String redishost, String redisPassword, String cachePrefix) {
         JedisPoolConfig poolConfig = new JedisPoolConfig();
-        poolConfig.setMaxTotal(500);
-        poolConfig.setMaxIdle(50);
+        poolConfig.setMaxTotal(MAX_TOTAL);
+        poolConfig.setMaxIdle(MAX_IDEL);
         List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>();
         String[] shardedAddress = redishost.split(",");
         for (String address : shardedAddress) {
             InetSocketAddress inetSocketAddress = getAddress(address);
-            JedisShardInfo si = new JedisShardInfo(inetSocketAddress.getAddress().getHostAddress(), inetSocketAddress.getPort(),5000);
+            JedisShardInfo si = new JedisShardInfo(inetSocketAddress.getAddress().getHostAddress(), inetSocketAddress.getPort(), TIME_OUT);
             if (StringUtils.isNotBlank(redisPassword)) {
                 si.setPassword(redisPassword);
             }
