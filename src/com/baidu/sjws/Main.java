@@ -18,7 +18,6 @@ public class Main {
     private static float FALSE_POSITIVE_PROBABILITY = 0.01f;
     private static int EXPECTED_ELEMENTS = 1000000;
     private static String SEPARATOR = ",";
-    private static String ENCODING = "ISO-8859-1";
     public static void main(String args[]) throws IOException {
 
         if(args.length < 6) {
@@ -92,8 +91,19 @@ public class Main {
             IOUtils.closeQuietly(reader);
         }
 
-        byte[] redisServiceValue = redisService.get(bloomName.getBytes(ENCODING));
+        byte[] redisServiceValue = redisService.get(bloomName);
         String base64String = Base64.encodeBase64String(redisServiceValue);
+
+//        test exists
+//        String testTk = "0000c3UFGH0C2VKaMEjh0A==";
+//        long[] offset = BloomUtils.murmurHashOffset(testTk, bloomFilter.gethCount(), bloomFilter.getBitSize());
+//        List<Object> value = redisService.getMultiBit(bloomName, offset);
+//        //test restore
+//        redisService.delete(bloomName);
+//        byte[] storedBytes = Base64.decodeBase64(base64String);
+//        redisService.set(bloomName, storedBytes);
+//        value = redisService.getMultiBit(bloomName, offset);
+
         return base64String;
     }
 
