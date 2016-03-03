@@ -2,6 +2,7 @@ package com.baidu.sjws;
 
 import com.dianxinos.jedis.wrapper.RedisService;
 import com.google.gson.JsonObject;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -20,7 +21,7 @@ public class Main {
     private static String ENCODING = "ISO-8859-1";
     public static void main(String args[]) throws IOException {
 
-        if(args.length < 5) {
+        if(args.length < 6) {
             showUsage("usage: bloomfilterparse.jar [srcFile] [bloomName] [redishost] [redisPassword] [cachePrefix] [isRemove]");
             return;
         }
@@ -36,6 +37,7 @@ public class Main {
 //        String redishost = "cp01-sjws-offline012.cp01:8769,cp01-sjws-offline012.cp01:8770";
 //        String redisPassword = "my_redis";
 //        String isRemove = "false";
+//        String cachePrefix = "_newrec_";
 
         JsonObject jsonObject = new JsonObject();
         RedisService redisService = RedisUtils.getRedisService(redishost, redisPassword, cachePrefix);
@@ -91,7 +93,8 @@ public class Main {
         }
 
         byte[] redisServiceValue = redisService.get(bloomName.getBytes(ENCODING));
-        return new String(redisServiceValue, ENCODING);
+        String base64String = Base64.encodeBase64String(redisServiceValue);
+        return base64String;
     }
 
     public static void showUsage(String message) {
