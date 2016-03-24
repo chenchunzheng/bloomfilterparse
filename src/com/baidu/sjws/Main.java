@@ -20,16 +20,27 @@ public class Main {
     private static String SEPARATOR = ",";
     public static void main(String args[]) throws IOException {
 
-        if(args.length < 6) {
+        if(args.length < 5) {
             showUsage("usage: bloomfilterparse.jar [srcFile] [bloomName] [redishost] [redisPassword] [cachePrefix] [isRemove]");
             return;
         }
+
         String srcFile = args[0];
         String bloomName = args[1];
         String redishost = args[2];
-        String redisPassword = args[3];
-        String cachePrefix = args[4];
-        String isRemove = args[5];
+        String redisPassword = "";
+        String cachePrefix = "";
+        String isRemove = "";
+        if(args.length == 5) {
+            cachePrefix = args[3];
+            isRemove = args[4];
+        }else {
+            redisPassword = args[3];
+            cachePrefix = args[4];
+            isRemove = args[5];
+        }
+
+
 
 //        String srcFile = "/Users/baidu/Downloads/token.txt";
 //        String bloomName = "bloom";
